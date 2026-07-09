@@ -30,7 +30,13 @@
 
     <div class="min-h-screen bg-gray-100">
 
-        @include('layouts.navigation')
+        @auth
+            @include('layouts.navigation')
+        @endauth
+
+        @guest
+            @include('layouts.guest-navigation')
+        @endguest
 
         <!-- SUCCESS POPUP -->
         @if(session('success'))

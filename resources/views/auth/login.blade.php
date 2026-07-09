@@ -7,6 +7,16 @@
             <!-- LEFT -->
             <div class="flex flex-col justify-center p-8 lg:p-14 bg-white relative">
 
+                <!-- BACK -->
+                <div class="mb-8">
+                    <a
+                        href="{{ route('katalog') }}"
+                        class="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600 font-semibold transition"
+                    >
+                        ← Kembali ke Katalog
+                    </a>
+                </div>
+
                 <!-- HEADER -->
                 <div class="mb-8 flex items-center gap-4">
 
@@ -175,6 +185,26 @@
                         >
                             Sign In
                         </button>
+
+                        <!-- LOGIN -->
+                        <div class="text-center text-sm text-slate-600">
+
+                            Belum memiliki akun?
+
+                            <a
+                                href="{{ route('register') }}"
+                                class="text-blue-600 font-bold hover:underline"
+                            >
+                                Daftar Sekarang
+                            </a>
+
+                            <div class="text-center mt-5">
+
+
+
+                            </div>
+
+                        </div>
 
                     </form>
 

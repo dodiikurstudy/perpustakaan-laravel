@@ -35,10 +35,28 @@
                         Katalog
                     </a>
 
+                    <a href="{{ route('favorites') }}"
+                        class="px-5 py-2.5 rounded-xl text-sm font-semibold transition
+                        {{ request()->routeIs('favorites') ? 'bg-primary-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
+                        Favorit
+                    </a>
+
+                    <a href="{{ route('fines') }}"
+                        class="px-5 py-2.5 rounded-xl text-sm font-semibold transition
+                        {{ request()->routeIs('fines') ? 'bg-primary-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
+                        Denda
+                    </a>
+
                     <a href="{{ route('my-books') }}"
                         class="px-5 py-2.5 rounded-xl text-sm font-semibold transition
                         {{ request()->routeIs('my-books') ? 'bg-primary-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
                         Buku Saya
+                    </a>
+
+                    <a href="{{ route('history') }}"
+                        class="px-5 py-2.5 rounded-xl text-sm font-semibold transition
+                        {{ request()->routeIs('history') ? 'bg-primary-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
+                        Riwayat
                     </a>
 
                 </div>

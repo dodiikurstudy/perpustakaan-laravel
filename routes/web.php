@@ -19,7 +19,7 @@ use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
 
-    return redirect()->route('login');
+    return redirect()->route('katalog');
 
 });
 
@@ -37,6 +37,24 @@ Route::post('/forgot-password', [ForgotPasswordController::class, 'update'])
 
 /*
 |--------------------------------------------------------------------------
+| KATALOG
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/katalog', [UserController::class, 'katalog'])
+    ->name('katalog');
+
+/*
+|--------------------------------------------------------------------------
+| DETAIL BUKU
+|--------------------------------------------------------------------------
+*/
+
+    Route::get('/books/{book}', [BookController::class, 'show'])
+    ->name('books.show'); 
+
+/*
+|--------------------------------------------------------------------------
 | USER / MEMBER
 |--------------------------------------------------------------------------
 */
@@ -51,27 +69,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/beranda', [UserController::class, 'beranda'])
         ->name('beranda');
-
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | KATALOG
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/katalog', [UserController::class, 'katalog'])
-        ->name('katalog');
-
-    /*
-    |--------------------------------------------------------------------------
-    | DETAIL BUKU
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/books/{book}', [BookController::class, 'show'])
-        ->name('books.show');
 
     /*
     |--------------------------------------------------------------------------

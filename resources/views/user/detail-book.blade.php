@@ -100,44 +100,108 @@
                                     $isFav = auth()->user() && auth()->user()->favorites()->where('book_id', $book->id)->exists();
                                 @endphp
 
-                                @if($isFav)
-                                    <form action="{{ route('favorites.destroy', $book->id) }}" method="POST">
-                                        @csrf @method('DELETE')
-                                        <x-danger-button class="w-full">Hapus Favorit</x-danger-button>
-                                    </form>
-                                @else
-                                    <form action="{{ route('favorites.store', $book->id) }}" method="POST">
-                                        @csrf
-                                        <x-button class="w-full bg-pink-500 text-white">Tambah Favorit</x-button>
-                                    </form>
-                                @endif
+                                @auth
 
-                                @if($book->tipe == 'fisik')
+                                    @if($isFav)
 
-                                    <form action="{{ route('borrowings.store', $book->id) }}" method="POST">
-                                        @csrf
-                                        <button class="w-full bg-emerald-600 text-white font-black py-3 rounded-2xl">
-                                            Pinjam Buku
-                                        </button>
-                                    </form>
+                                        <form action="{{ route('favorites.destroy', $book->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
 
-                                @else
+                                            <x-danger-button class="w-full">
+                                                Hapus Favorit
+                                            </x-danger-button>
 
-                                    @if(auth()->user()->role == 'member' || auth()->user()->role == 'admin')
-
-                                        <a href="{{ asset('storage/' . $book->file_buku) }}"
-                                            class="block text-center w-full bg-violet-600 text-white font-black py-3 rounded-2xl">
-                                            Baca Ebook
-                                        </a>
+                                        </form>
 
                                     @else
 
-                                        <a href="{{ asset('storage/' . $book->preview_file) }}"
-                                            class="block text-center w-full bg-orange-500 text-white font-black py-3 rounded-2xl">
-                                            Baca Preview
-                                        </a>
+                                        <form action="{{ route('favorites.store', $book->id) }}" method="POST">
+                                            @csrf
+
+                                            <x-button class="w-full bg-pink-500 text-white">
+                                                Tambah Favorit
+                                            </x-button>
+
+                                        </form>
 
                                     @endif
+
+                                @endauth
+
+                                @guest
+
+                                    <a
+                                        href="{{ route('login') }}"
+                                        class="block w-full text-center bg-pink-500 text-white font-black py-3 rounded-2xl"
+                                    >
+                                        Masuk untuk Menambahkan Favorit
+                                    </a>
+
+                                @endguest
+
+                                @if($book->tipe == 'fisik')
+
+                                    @auth
+
+                                    <form action="{{ route('borrowings.store',$book->id) }}" method="POST">
+                                        @csrf
+
+                                        <button class="...">
+                                            Pinjam Buku
+                                        </button>
+
+                                    </form>
+
+                                    @endauth
+
+                                    @guest
+
+                                    <a
+                                        href="{{ route('login') }}"
+                                        class="block w-full text-center bg-emerald-600 text-white font-black py-3 rounded-2xl"
+                                    >
+                                        Masuk untuk Meminjam
+                                    </a>
+
+                                    @endguest
+
+                                @else
+
+                                    @auth
+
+                                        @if(in_array(auth()->user()->role, ['member', 'admin']))
+
+                                            <a
+                                                href="{{ asset('storage/' . $book->file_buku) }}"
+                                                class="block text-center w-full bg-violet-600 text-white font-black py-3 rounded-2xl"
+                                            >
+                                                Baca Ebook
+                                            </a>
+
+                                        @else
+
+                                            <a
+                                                href="{{ asset('storage/' . $book->preview_file) }}"
+                                                class="block text-center w-full bg-orange-500 text-white font-black py-3 rounded-2xl"
+                                            >
+                                                Baca Preview
+                                            </a>
+
+                                        @endif
+
+                                    @endauth
+
+                                    @guest
+
+                                        <a
+                                            href="{{ route('login') }}"
+                                            class="block text-center w-full bg-violet-600 text-white font-black py-3 rounded-2xl"
+                                        >
+                                            Masuk untuk Membaca Ebook
+                                        </a>
+
+                                    @endguest
 
                                 @endif
 
@@ -159,28 +223,46 @@
                     <h2 class="text-2xl font-black">Review</h2>
                     <p class="text-slate-500 text-sm mb-4">Bagikan pengalamanmu</p>
 
-                    <!-- FORM -->
-                    <form action="{{ route('comments.store', $book->id) }}" method="POST" class="space-y-3 mb-5">
+                    @auth
 
-                        @csrf
+    <!-- FORM KOMENTAR -->
+    <form action="{{ route('comments.store', $book->id) }}" method="POST" class="space-y-3 mb-5">
 
-                        <select name="rating" class="w-full bg-slate-100 rounded-xl p-3">
-                            <option value="5">⭐⭐⭐⭐⭐</option>
-                            <option value="4">⭐⭐⭐⭐</option>
-                            <option value="3">⭐⭐⭐</option>
-                            <option value="2">⭐⭐</option>
-                            <option value="1">⭐</option>
-                        </select>
+        @csrf
 
-                        <textarea name="isi" rows="3"
-                            class="w-full bg-slate-100 rounded-xl p-3"
-                            placeholder="Tulis review..."></textarea>
+        <select name="rating" class="w-full bg-slate-100 rounded-xl p-3">
+            <option value="5">⭐⭐⭐⭐⭐</option>
+            <option value="4">⭐⭐⭐⭐</option>
+            <option value="3">⭐⭐⭐</option>
+            <option value="2">⭐⭐</option>
+            <option value="1">⭐</option>
+        </select>
 
-                        <x-button class="w-full bg-slate-900 text-white">
-                            Kirim
-                        </x-button>
+        <textarea
+            name="isi"
+            rows="3"
+            class="w-full bg-slate-100 rounded-xl p-3"
+            placeholder="Tulis review..."
+        ></textarea>
 
-                    </form>
+        <x-button class="w-full bg-slate-900 text-white">
+            Kirim
+        </x-button>
+
+    </form>
+
+@endauth
+
+@guest
+
+    <a
+        href="{{ route('login') }}"
+        class="block w-full text-center bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition"
+    >
+        Masuk untuk Memberikan Komentar
+    </a>
+
+@endguest
 
                     <!-- REVIEW LIST (INI YANG BIKIN TIDAK FULL SCROLL) -->
                     <div class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
