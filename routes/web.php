@@ -10,6 +10,9 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\BorrowingController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\EbookController;
+use App\Http\Controllers\ReadingProgressController;
+use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -157,6 +160,42 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/member-request', [UserController::class, 'requestMember'])
         ->name('member.request');
 
+    Route::get('/member/payment', [UserController::class,'memberPayment'])
+    ->name('member.payment');
+
+
+    Route::post('/member/payment/upload', [UserController::class,'uploadMemberPayment'])
+    ->name('member.payment.upload');
+
+     /*
+    |--------------------------------------------------------------------------
+    | EBOOKS
+    |--------------------------------------------------------------------------
+    */
+
+
+    Route::get('/ebooks/{book}', [EbookController::class, 'read'])
+    ->name('ebooks.read');
+
+
+    Route::get('/ebooks/{book}/file', [EbookController::class, 'file'])
+    ->name('ebooks.file');
+
+
+    Route::post('/ebooks/{book}/progress', [ReadingProgressController::class, 'store'])
+    ->name('ebooks.progress');
+
+
+
+
+
+    Route::get('/denda/{borrowing}/bayar', [PaymentController::class, 'create'])
+    ->name('payments.create');
+
+
+    Route::post('/denda/{borrowing}/bayar', [PaymentController::class, 'store'])
+    ->name('payments.store');
+
 });
 
 /*
@@ -263,6 +302,27 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::post('/return-books/{borrowing}/confirm', [AdminController::class, 'confirmReturn'])
         ->name('return-books.confirm');
+
+
+
+
+    Route::get('/admin/payments', [AdminController::class, 'payments'])
+    ->name('admin.payments');
+
+    Route::post('/admin/payments/{payment}/confirm', [AdminController::class, 'confirmPayment'])
+    ->name('admin.payments.confirm');
+
+    Route::get('/admin/member-requests', [AdminController::class, 'memberRequests'])
+    ->name('admin.member.requests');
+
+    Route::patch('/admin/member-requests/{memberRequest}/approve', [AdminController::class, 'approveMember'])
+    ->name('admin.member.approve');
+
+    Route::patch('/admin/member-requests/{memberRequest}/reject', [AdminController::class, 'rejectMember'] )
+    ->name('admin.member.reject');
+
+    Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])
+    ->name('users.destroy');
 
 });
 

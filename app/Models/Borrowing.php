@@ -13,6 +13,7 @@ class Borrowing extends Model
         'tanggal_pinjam',
         'tanggal_kembali',
         'status',
+        'kondisi_buku',
         'is_extended',
         'denda',
 
@@ -34,4 +35,10 @@ class Borrowing extends Model
     {
         return $this->belongsTo(Book::class);
     }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
 }

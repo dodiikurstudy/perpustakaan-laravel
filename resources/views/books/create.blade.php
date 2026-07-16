@@ -44,14 +44,10 @@
                     <h2 class="font-semibold text-lg text-slate-900">File Buku Digital</h2>
 
                     <div>
-                        <label class="font-medium text-slate-700">Upload Full Ebook PDF</label>
+                        <label class="font-medium text-slate-700">Upload Buku Digital PDF</label>
                         <input type="file" name="file_buku" class="border p-3 rounded-lg w-full mt-2 bg-white">
                     </div>
 
-                    <div>
-                        <label class="font-medium text-slate-700">Upload Preview Ebook (±5 halaman)</label>
-                        <input type="file" name="preview_file" class="border p-3 rounded-lg w-full mt-2 bg-white">
-                    </div>
                 </div>
 
                 <div class="pt-4">

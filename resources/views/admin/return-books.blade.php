@@ -7,10 +7,11 @@
     <!-- HEADER -->
     <div class="mb-10">
         <h1 class="text-5xl font-black text-slate-800">
-            Pengembalian Buku Terlambat
+            Verifikasi Pengembalian Buku
         </h1>
+
         <p class="text-slate-500 mt-3 text-lg">
-            Konfirmasi pengembalian buku dan hitung denda keterlambatan
+            Periksa kondisi buku sebelum menyelesaikan pengembalian
         </p>
     </div>
 
@@ -48,7 +49,7 @@
                             <th class="p-6 text-left">Pinjam</th>
                             <th class="p-6 text-left">Deadline</th>
                             <th class="p-6 text-center">Telat</th>
-                            <th class="p-6 text-center">Denda</th>
+                            <th class="p-6 text-center">Denda Telat</th>
                             <th class="p-6 text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -152,16 +153,56 @@
             <p class="text-sm text-slate-600 mb-4">
                 {{ $borrowing->book->judul }} - {{ $borrowing->user->name }}
             </p>
+            
+            <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+
+            <p class="text-sm text-red-500">
+                Denda keterlambatan otomatis
+            </p>
+
+            <p class="text-2xl font-black text-red-600">
+                Rp {{ number_format($calculatedFine,0,',','.') }}
+            </p>
+
+            <p class="text-xs text-red-400 mt-1">
+                {{ $lateDays }} hari × Rp1.000
+            </p>
+
+        </div>
 
             <form method="POST" action="{{ route('return-books.confirm', $borrowing->id) }}">
                 @csrf
 
-                <input
-                    type="number"
-                    name="denda"
-                    value="{{ $calculatedFine }}"
-                    class="w-full border p-3 rounded-xl mb-4"
+                <label class="font-bold text-slate-700">
+                    Kondisi Buku
+                </label>
+
+
+                <select
+                    name="kondisi_buku"
+                    class="w-full border p-3 rounded-xl mt-2 mb-4"
                 >
+
+                    <option value="baik">
+                        Baik
+                    </option>
+
+
+                    <option value="rusak_ringan">
+                        Rusak Ringan (+Rp20.000)
+                    </option>
+
+
+                    <option value="rusak_berat">
+                        Rusak Berat (+Rp50.000)
+                    </option>
+
+
+                    <option value="hilang">
+                        Hilang (+Rp100.000)
+                    </option>
+
+                </select>
 
                 <div class="flex gap-3">
                     <button class="flex-1 bg-emerald-500 text-white p-3 rounded-xl font-bold">

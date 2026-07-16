@@ -78,6 +78,17 @@
                     </a>
 
                     <a
+                        href="{{ route('admin.payments') }}"
+                        class="block hover:bg-slate-800 px-4 py-3 rounded-2xl transition"
+                    >
+
+                        Pembayaran
+
+                    </a>
+
+                    </a>
+
+                    <a
                         href="{{ route('borrowings.admin') }}"
                         class="block hover:bg-slate-800 px-4 py-3 rounded-2xl transition"
                     >

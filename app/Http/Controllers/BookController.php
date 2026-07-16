@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\ReadingProgress;
 use Illuminate\Http\Request;
 
 class BookController extends Controller
@@ -33,7 +34,23 @@ class BookController extends Controller
     // =========================
     public function show(Book $book)
     {
-        return view('user.detail-book', compact('book'));
+
+        $progress = null;
+
+
+        if(auth()->check())
+        {
+            $progress = ReadingProgress::where('user_id', auth()->id())
+                ->where('book_id', $book->id)
+                ->first();
+        }
+
+
+        return view('user.detail-book', compact(
+            'book',
+            'progress'
+        ));
+
     }
 
     // =========================
@@ -58,18 +75,13 @@ class BookController extends Controller
             'kategori' => 'required',
             'stok' => 'required|integer',
             'tipe' => 'required',
-
             'cover' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-
             'file_buku' => 'nullable|mimes:pdf|max:20480',
-
-            'preview_file' => 'nullable|mimes:pdf|max:20480',
 
         ]);
 
         $cover = null;
         $fileBuku = null;
-        $previewFile = null;
 
         // COVER
         if ($request->hasFile('cover')) {
@@ -85,16 +97,7 @@ class BookController extends Controller
 
             $fileBuku = $request
                 ->file('file_buku')
-                ->store('ebooks', 'public');
-
-        }
-
-        // PREVIEW
-        if ($request->hasFile('preview_file')) {
-
-            $previewFile = $request
-                ->file('preview_file')
-                ->store('previews', 'public');
+                ->store('ebooks', 'private');
 
         }
 
@@ -107,10 +110,8 @@ class BookController extends Controller
             'kategori' => $request->kategori,
             'stok' => $request->stok,
             'tipe' => $request->tipe,
-
             'cover' => $cover,
             'file_buku' => $fileBuku,
-            'preview_file' => $previewFile,
 
         ]);
 
@@ -141,18 +142,13 @@ class BookController extends Controller
             'kategori' => 'required',
             'stok' => 'required|integer',
             'tipe' => 'required',
-
             'cover' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-
             'file_buku' => 'nullable|mimes:pdf|max:20480',
-
-            'preview_file' => 'nullable|mimes:pdf|max:20480',
 
         ]);
 
         $cover = $book->cover;
         $fileBuku = $book->file_buku;
-        $previewFile = $book->preview_file;
 
         // COVER
         if ($request->hasFile('cover')) {
@@ -168,16 +164,7 @@ class BookController extends Controller
 
             $fileBuku = $request
                 ->file('file_buku')
-                ->store('ebooks', 'public');
-
-        }
-
-        // PREVIEW
-        if ($request->hasFile('preview_file')) {
-
-            $previewFile = $request
-                ->file('preview_file')
-                ->store('previews', 'public');
+                ->store('ebooks', 'private');
 
         }
 
@@ -190,11 +177,9 @@ class BookController extends Controller
             'kategori' => $request->kategori,
             'stok' => $request->stok,
             'tipe' => $request->tipe,
-
             'cover' => $cover,
             'file_buku' => $fileBuku,
-            'preview_file' => $previewFile,
-
+ 
         ]);
 
         return redirect()

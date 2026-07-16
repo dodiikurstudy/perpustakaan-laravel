@@ -147,7 +147,7 @@
                                     <form action="{{ route('borrowings.store',$book->id) }}" method="POST">
                                         @csrf
 
-                                        <button class="...">
+                                        <button class="block w-full text-center bg-red-500 text-white font-black py-3 rounded-2xl">
                                             Pinjam Buku
                                         </button>
 
@@ -170,23 +170,44 @@
 
                                     @auth
 
-                                        @if(in_array(auth()->user()->role, ['member', 'admin']))
+                                        @if(auth()->user()->role == 'admin')
 
-                                            <a
-                                                href="{{ asset('storage/' . $book->file_buku) }}"
-                                                class="block text-center w-full bg-violet-600 text-white font-black py-3 rounded-2xl"
+                                            <button
+                                                type="button"
+                                                disabled
+                                                class="block w-full text-center bg-slate-400 text-white font-black py-3 rounded-2xl cursor-not-allowed"
                                             >
-                                                Baca Ebook
-                                            </a>
+                                                Admin Tidak Dapat Membaca Ebook
+                                            </button>
 
                                         @else
 
                                             <a
-                                                href="{{ asset('storage/' . $book->preview_file) }}"
-                                                class="block text-center w-full bg-orange-500 text-white font-black py-3 rounded-2xl"
+                                                href="{{ route('ebooks.read', $book) }}"
+                                                class="block text-center w-full bg-violet-600 hover:bg-violet-700 text-white font-black py-3 rounded-2xl transition"
                                             >
-                                                Baca Preview
+                                                @if($progress && $progress->last_page > 1)
+
+                                                    Lanjutkan Baca
+
+                                                @else
+
+                                                    Baca Ebook
+
+                                                @endif
+
                                             </a>
+
+                                            @if($progress && $progress->last_page > 1)
+
+                                                <p class="text-sm text-gray-500 mt-2 text-center">
+
+                                                    Terakhir dibaca:
+                                                    halaman {{ $progress->last_page }}
+
+                                                </p>
+
+                                            @endif
 
                                         @endif
 

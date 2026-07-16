@@ -4,21 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class MemberRequest extends Model
+class ReadingProgress extends Model
 {
     protected $fillable = [
-
         'user_id',
-        'status',
-        'jumlah',
-        'bukti_pembayaran',
-        'tanggal_bayar'
-
+        'book_id',
+        'last_page',
     ];
 
-    // RELASI KE USER
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function book()
+    {
+        return $this->belongsTo(Book::class);
     }
 }

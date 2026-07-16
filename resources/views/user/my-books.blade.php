@@ -23,17 +23,11 @@
                 @php
 
                     $isLate =
-                        $borrowing->status == 'dipinjam'
+                        now()->gt($borrowing->tanggal_kembali)
                         &&
-                        now()->gt($borrowing->tanggal_kembali);
+                        $borrowing->status == 'dipinjam';
 
-                    $lateDays = $isLate
-                        ? abs((int) now()->diffInDays($borrowing->tanggal_kembali))
-                        : 0;
-
-                    $calculatedFine = $isLate
-                        ? $lateDays * 1000
-                        : 0;
+                    $calculatedFine = $borrowing->denda;
 
                 @endphp
 
@@ -107,6 +101,14 @@
 
                                         @endif
 
+                                        @if($borrowing->status == 'menunggu_verifikasi')
+
+                                            <span class="bg-orange-100 text-orange-700 px-5 py-2 rounded-full text-sm font-black">
+                                                Menunggu Verifikasi Admin
+                                            </span>
+
+                                        @endif
+
                                         @if($borrowing->status == 'dikembalikan')
 
                                             <span class="bg-emerald-100 text-emerald-700 px-5 py-2 rounded-full text-sm font-black">
@@ -115,10 +117,10 @@
 
                                         @endif
 
-                                        @if($isLate)
+                                        @if($borrowing->denda > 0)
 
                                             <span class="bg-red-100 text-red-600 px-5 py-2 rounded-full text-sm font-black animate-pulse">
-                                                Terlambat {{ $lateDays }} Hari
+                                                Terlambat
                                             </span>
 
                                         @endif
@@ -255,52 +257,53 @@
                                     @endif
 
                                     <!-- RETURN -->
-                                    @if(!$isLate)
+                                    <form
+                                        action="{{ route('borrowings.return', $borrowing->id) }}"
+                                        method="POST"
+                                    >
 
-                                        <form
-                                            action="{{ route('borrowings.return', $borrowing->id) }}"
-                                            method="POST"
+                                        @csrf
+
+                                        <button
+                                            class="
+                                                w-full
+                                                bg-red-500 hover:bg-red-600
+                                                text-white
+                                                py-4 px-6
+                                                rounded-3xl
+                                                font-black
+                                                text-lg
+                                                transition-all duration-200
+                                                shadow-lg hover:shadow-xl
+                                            "
                                         >
 
-                                            @csrf
+                                            Kembalikan Buku
 
-                                            <button
-                                                class="
-                                                    w-full
-                                                    bg-red-500 hover:bg-red-600
-                                                    text-white
-                                                    py-4 px-6
-                                                    rounded-3xl
-                                                    font-black
-                                                    text-lg
-                                                    transition-all duration-200
-                                                    shadow-lg hover:shadow-xl
-                                                "
-                                            >
+                                        </button>
 
-                                                Kembalikan Buku
+                                    </form>
 
-                                            </button>
+                                </div>
 
-                                        </form>
+                            @endif
 
-                                    @else
+                            @if($borrowing->status == 'menunggu_verifikasi')
 
-                                        <div class="bg-red-50 border border-red-200 rounded-3xl p-6 text-center">
+                                <div class="flex flex-col gap-4 min-w-[260px]">
 
+                                    <div class="bg-orange-50 border border-orange-200 rounded-3xl p-6 text-center">
 
-                                            <h3 class="text-red-600 text-xl font-black">
-                                                Menunggu Konfirmasi Admin
-                                            </h3>
+                                        <h3 class="text-orange-600 text-xl font-black">
+                                            Menunggu Verifikasi Admin
+                                        </h3>
 
-                                            <p class="text-red-500 mt-3 text-sm leading-relaxed">
-                                                Buku terlambat dikembalikan.
-                                                Silakan hubungi admin untuk proses pengembalian dan pembayaran denda.
-                                            </p>
+                                        <p class="text-orange-500 mt-3 text-sm leading-relaxed">
+                                            Pengembalian buku sedang diperiksa admin.
+                                            Silakan tunggu konfirmasi.
+                                        </p>
 
-                                        </div>
-
-                                    @endif
+                                    </div>
 
                                 </div>
 

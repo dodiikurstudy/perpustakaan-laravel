@@ -17,7 +17,6 @@ class Book extends Model
         'stok',
         'cover',
         'file_buku',
-        'preview_file',
         'tipe',
 
     ];
@@ -35,5 +34,10 @@ class Book extends Model
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    public function readingProgress()
+    {
+        return $this->hasMany(ReadingProgress::class);
     }
 }

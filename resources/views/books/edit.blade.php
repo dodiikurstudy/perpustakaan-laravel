@@ -49,22 +49,14 @@
                     <h2 class="font-semibold text-lg text-slate-900">File Digital</h2>
 
                     <div>
-                        <label class="font-medium text-slate-700">File Ebook (PDF)</label>
+                        <label class="font-medium text-slate-700">File Buku Digital (PDF)</label>
                         <input type="file" name="file_buku" class="border p-3 rounded-lg w-full mt-2 bg-white">
 
                         @if($book->file_buku)
-                            <a href="{{ asset('storage/' . $book->file_buku) }}" target="_blank" class="text-primary-600 underline text-sm block mt-2">Lihat Ebook</a>
+                            <a href="{{ asset('storage/' . $book->file_buku) }}" target="_blank" class="text-primary-600 underline text-sm block mt-2">Lihat Buku Digital</a>
                         @endif
                     </div>
 
-                    <div>
-                        <label class="font-medium text-slate-700">Preview Ebook (opsional)</label>
-                        <input type="file" name="preview_file" class="border p-3 rounded-lg w-full mt-2 bg-white">
-
-                        @if($book->preview_file)
-                            <a href="{{ asset('storage/' . $book->preview_file) }}" target="_blank" class="text-purple-600 underline text-sm block mt-2">Lihat Preview</a>
-                        @endif
-                    </div>
                 </div>
 
                 <div class="pt-4">

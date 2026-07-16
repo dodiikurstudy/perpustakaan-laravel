@@ -47,6 +47,25 @@
                         Denda
                     </a>
 
+                    @if(
+    auth()->user()->role == 'user' &&
+    \App\Models\MemberRequest::where('user_id', auth()->id())
+    ->where('status','pending_payment')
+    ->exists()
+)
+
+<a href="{{ route('member.payment') }}"
+    class="px-5 py-2.5 rounded-xl text-sm font-semibold transition
+    {{ request()->routeIs('member.payment') 
+        ? 'bg-primary-600 text-white shadow' 
+        : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
+
+    Pembayaran Member
+
+</a>
+
+@endif
+
                     <a href="{{ route('my-books') }}"
                         class="px-5 py-2.5 rounded-xl text-sm font-semibold transition
                         {{ request()->routeIs('my-books') ? 'bg-primary-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">

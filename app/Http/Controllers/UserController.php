@@ -134,24 +134,107 @@ class UserController extends Controller
 }
 
     public function requestMember()
-    {
-        $user = auth()->user();
+{
+    $user = auth()->user();
 
-        // Cegah pengajuan ganda (pending)
-        $exists = MemberRequest::where('user_id', $user->id)
-            ->where('status', 'pending')
-            ->exists();
 
-        if (! $exists) {
-            MemberRequest::create([
-                'user_id' => $user->id,
-                'status' => 'pending',
-            ]);
-        }
+    // Cek apakah sudah pernah mengajukan
+    $exists = MemberRequest::where('user_id', $user->id)
+        ->whereIn('status', [
+            'pending_payment',
+            'waiting_confirmation',
+            'approved'
+        ])
+        ->exists();
+
+
+
+    if ($exists) {
 
         return redirect()
             ->back()
-            ->with('success', 'Pengajuan member berhasil dikirim.');
+            ->with(
+                'error',
+                'Anda sudah memiliki pengajuan member.'
+            );
+
+    }
+
+
+
+    // Membuat pengajuan member baru
+    MemberRequest::create([
+
+        'user_id' => $user->id,
+
+        // status awal pembayaran
+        'status' => 'pending_payment',
+
+        // biaya member
+        'jumlah' => 50000,
+
+    ]);
+
+
+
+    // Arahkan ke halaman pembayaran
+    return redirect()
+        ->route('member.payment')
+        ->with(
+            'success',
+            'Pengajuan member berhasil dibuat. Silakan melakukan pembayaran.'
+        );
+}
+
+
+    public function memberPayment()
+    {
+        $memberRequest = MemberRequest::where('user_id', auth()->id())
+            ->latest()
+            ->first();
+
+        if (!$memberRequest) {
+
+            return redirect()
+                ->back()
+                ->with(
+                    'error',
+                    'Anda belum memiliki pengajuan member.'
+                );
+
+        }
+
+        return view(
+            'user.member-payment',
+            compact('memberRequest')
+        );
+    }
+
+    public function uploadMemberPayment(Request $request)
+    {
+        $request->validate([
+            'bukti_pembayaran' => 'required|image|max:2048',
+        ]);
+
+        $memberRequest = MemberRequest::where('user_id', auth()->id())
+            ->where('status', 'pending_payment')
+            ->firstOrFail();
+
+        $file = $request->file('bukti_pembayaran')
+            ->store('member/payment', 'public');
+
+        $memberRequest->update([
+            'bukti_pembayaran' => $file,
+            'tanggal_bayar' => now(),
+            'status' => 'waiting_confirmation',
+        ]);
+
+        return redirect()
+            ->route('member.payment')
+            ->with(
+                'success',
+                'Bukti pembayaran berhasil dikirim. Menunggu verifikasi admin.'
+            );
     }
 
     // ======================
@@ -160,22 +243,54 @@ class UserController extends Controller
 
     public function history()
     {
-        $borrowings = Borrowing::where('user_id', auth()->id())
-            ->latest()
-            ->get();
+        $borrowings = Borrowing::with([
+            'book',
+            'payments'
+        ])
+        ->where('user_id', auth()->id())
+        ->latest()
+        ->get();
 
-        return view('user.history', compact('borrowings'));
+        return view(
+            'user.history',
+            compact('borrowings')
+        );
     }
 
     public function fines()
     {
-        $borrowings = Borrowing::where('user_id', auth()->id())
-            ->where('denda', '>', 0)
-            ->get();
+        $borrowings = Borrowing::with([
+            'book',
+            'payments'
+        ])
+        ->where('user_id', auth()->id())
+        ->where('denda', '>', 0)
+        ->latest()
+        ->get();
 
-        $total = $borrowings->sum('denda');
 
-        return view('user.fines', compact('borrowings', 'total'));
+        $total = $borrowings->sum(function ($borrowing) {
+
+            $paid = $borrowing->payments
+                ->where('status', 'lunas')
+                ->sum('jumlah');
+
+
+            return max(
+                $borrowing->denda - $paid,
+                0
+            );
+
+        });
+
+
+        return view(
+            'user.fines',
+            compact(
+                'borrowings',
+                'total'
+            )
+        );
     }
 
 }

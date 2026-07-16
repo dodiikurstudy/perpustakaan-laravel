@@ -42,6 +42,16 @@
 
     @endif
 
+    @if(session('error'))
+
+    <div class="mb-6 bg-red-100 border border-red-200 text-red-700 px-5 py-4 rounded-2xl">
+
+        {{ session('error') }}
+
+    </div>
+
+@endif
+
     <!-- TABLE -->
     <div class="overflow-x-auto">
 
@@ -119,46 +129,61 @@
                         <!-- AKSI -->
                         <td class="p-5">
 
-                            <form
-                                action="{{ route('users.updateRole', $user->id) }}"
-                                method="POST"
-                                class="flex items-center gap-3"
-                            >
+                            <div class="flex items-center gap-3">
 
-                                @csrf
-                                @method('PUT')
+    <form
+        action="{{ route('users.updateRole', $user->id) }}"
+        method="POST"
+        class="flex items-center gap-3"
+    >
 
-                                <select
-                                    name="role"
-                                    class="border border-slate-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                >
+        @csrf
+        @method('PUT')
 
-                                    <option
-                                        value="user"
-                                        {{ $user->role == 'user' ? 'selected' : '' }}
-                                    >
-                                        User
-                                    </option>
+        <select
+            name="role"
+            class="border border-slate-300 rounded-xl px-4 py-2"
+        >
 
-                                    <option
-                                        value="member"
-                                        {{ $user->role == 'member' ? 'selected' : '' }}
-                                    >
-                                        Member
-                                    </option>
+            <option value="user" {{ $user->role == 'user' ? 'selected' : '' }}>
+                User
+            </option>
 
-                                    <option
-                                        value="admin"
-                                        {{ $user->role == 'admin' ? 'selected' : '' }}
-                                    >
-                                        Admin
-                                    </option>
+            <option value="member" {{ $user->role == 'member' ? 'selected' : '' }}>
+                Member
+            </option>
 
-                                </select>
+            <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>
+                Admin
+            </option>
 
-                                <x-button type="submit" class="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold">Update</x-button>
+        </select>
 
-                            </form>
+        <x-button
+            type="submit"
+            class="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl"
+        >
+            Update
+        </x-button>
+
+    </form>
+
+    <form
+        action="{{ route('users.destroy', $user->id) }}"
+        method="POST"
+        onsubmit="return confirm('Yakin ingin menghapus user ini?')"
+    >
+
+        @csrf
+        @method('DELETE')
+
+        <x-danger-button>
+            Hapus
+        </x-danger-button>
+
+    </form>
+
+</div>
 
                         </td>
 

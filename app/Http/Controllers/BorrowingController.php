@@ -43,7 +43,7 @@ class BorrowingController extends Controller
                 'error',
 
                 auth()->user()->role == 'member'
-                    ? 'LIMIT_MEMBER'
+                    ? 'TELAH MENCAPAI BATAS PEMINJAMAN'
                     : 'PREMIUM_MODAL'
 
             );
@@ -136,40 +136,42 @@ public function extend(Borrowing $borrowing)
 
     public function returnBook(Borrowing $borrowing)
     {
-        // CEK PEMILIK PEMINJAMAN
+        // CEK PEMILIK
         if ($borrowing->user_id != auth()->id()) {
 
             abort(403);
 
         }
 
-        // USER TIDAK BISA KEMBALIKAN BUKU TERLAMBAT SENDIRI
-        if (now()->gt($borrowing->tanggal_kembali)) {
 
-            return back()->with(
-                'error',
-                'Buku terlambat. Silakan minta admin untuk memproses pengembalian dan pembayaran denda.'
-            );
-
-        }
-
+        // HITUNG DENDA TELAT
         $denda = 0;
 
-        // UPDATE STATUS
+        if (now()->gt($borrowing->tanggal_kembali)) {
+
+            $lateDays = floor(
+                now()->diffInDays(
+                    Carbon::parse($borrowing->tanggal_kembali)
+                )
+            );
+
+            $denda = $lateDays * 1000;
+        }
+
+
+        // UBAH STATUS
         $borrowing->update([
 
-            'status' => 'dikembalikan',
+            'status' => 'menunggu_verifikasi',
 
             'denda' => $denda,
 
         ]);
 
-        // TAMBAH STOK BUKU
-        $borrowing->book->increment('stok');
 
         return back()->with(
             'success',
-            'Buku berhasil dikembalikan'
+            'Pengembalian berhasil dikirim. Menunggu verifikasi admin.'
         );
     }
 

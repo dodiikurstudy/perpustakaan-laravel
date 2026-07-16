@@ -8,6 +8,7 @@ use App\Models\Book;
 use App\Models\User;
 use App\Models\Borrowing;
 use App\Models\MemberRequest;
+use App\Models\Payment;
 
 use Illuminate\Support\Facades\Hash;
 
@@ -195,47 +196,100 @@ class AdminController extends Controller
     */
 
     public function memberRequests()
-    {
-        $requests = MemberRequest::with('user')
-            ->latest()
-            ->get();
+{
+    $requests = MemberRequest::with('user')
+        ->latest()
+        ->get();
 
-        return view('admin.member-requests', compact('requests'));
-    }
+    return view(
+        'admin.member-requests',
+        compact('requests')
+    );
+}
 
-    /*
-    |--------------------------------------------------------------------------
-    | APPROVE MEMBER REQUEST
-    |--------------------------------------------------------------------------
-    */
 
-    public function approveMember(MemberRequest $memberRequest)
-    {
-        // UPDATE USER ROLE TO MEMBER
-        $memberRequest->user->update(['role' => 'member']);
+/*
+|--------------------------------------------------------------------------
+| APPROVE MEMBER REQUEST
+|--------------------------------------------------------------------------
+*/
 
-        // UBAH STATUS REQUEST MENJADI APPROVED
-        $memberRequest->update(['status' => 'approved']);
-
-        return redirect()
-            ->back()
-            ->with('success', 'User berhasil di-upgrade menjadi member');
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | REJECT MEMBER REQUEST
-    |--------------------------------------------------------------------------
-    */
-
-    public function rejectMember(MemberRequest $memberRequest)
-    {
-        $memberRequest->update(['status' => 'rejected']);
+public function approveMember(MemberRequest $memberRequest)
+{
+    // Pastikan user sudah mengirim bukti pembayaran
+    if ($memberRequest->status != 'waiting_confirmation') {
 
         return redirect()
             ->back()
-            ->with('success', 'Pengajuan ditolak');
+            ->with(
+                'error',
+                'User belum mengirim bukti pembayaran.'
+            );
+
     }
+
+
+    // Ubah status menjadi approved
+    $memberRequest->update([
+
+        'status' => 'approved',
+
+    ]);
+
+
+    // Upgrade role user menjadi member
+    $memberRequest->user->update([
+
+        'role' => 'member',
+
+    ]);
+
+
+    return redirect()
+        ->back()
+        ->with(
+            'success',
+            'Pembayaran berhasil diverifikasi. User sekarang menjadi member.'
+        );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| REJECT MEMBER REQUEST
+|--------------------------------------------------------------------------
+*/
+
+public function rejectMember(MemberRequest $memberRequest)
+{
+    // Pastikan hanya pembayaran yang sedang diverifikasi
+    // yang dapat ditolak
+    if ($memberRequest->status != 'waiting_confirmation') {
+
+        return redirect()
+            ->back()
+            ->with(
+                'error',
+                'Pengajuan ini tidak dapat ditolak.'
+            );
+
+    }
+
+
+    $memberRequest->update([
+
+        'status' => 'rejected',
+
+    ]);
+
+
+    return redirect()
+        ->back()
+        ->with(
+            'success',
+            'Pembayaran member ditolak.'
+        );
+}
 
     /*
     |--------------------------------------------------------------------------
@@ -245,10 +299,8 @@ class AdminController extends Controller
 
     public function pendingReturns()
     {
-        // AMBIL SEMUA BUKU YANG DIPINJAM DAN TERLAMBAT
         $borrowings = Borrowing::with(['book', 'user'])
-            ->where('status', 'dipinjam')
-            ->whereDate('tanggal_kembali', '<', now())
+            ->where('status', 'menunggu_verifikasi')
             ->latest()
             ->get();
 
@@ -257,24 +309,96 @@ class AdminController extends Controller
 
     public function confirmReturn(Borrowing $borrowing, Request $request)
     {
-        // VALIDATE DENDA INPUT
         $request->validate([
-            'denda' => 'required|numeric|min:0'
+
+            'kondisi_buku' => [
+                'required',
+                'in:baik,rusak_ringan,rusak_berat,hilang'
+            ]
+
         ]);
 
-        // UPDATE STATUS DAN DENDA
-        $borrowing->update([
-            'status' => 'dikembalikan',
-            'denda' => $request->denda
-        ]);
 
-        // TAMBAH STOK BUKU
-        $borrowing->book->increment('stok');
+        $tambahanDenda = 0;
+
+
+        if($request->kondisi_buku == 'rusak_ringan') {
+
+            $tambahanDenda = 20000;
+
+        }
+
+
+        if($request->kondisi_buku == 'rusak_berat') {
+
+            $tambahanDenda = 50000;
+
+        }
+
+
+        if($request->kondisi_buku == 'hilang') {
+
+            $tambahanDenda = 100000;
+
+        }
+
+
+        $lateDays = 0;
+
+
+        if(now()->gt($borrowing->tanggal_kembali))
+        {
+            $lateDays = $borrowing->tanggal_kembali->startOfDay()
+                ->diffInDays(now()->startOfDay());
+        }
+
+
+        $dendaTerlambat = $lateDays * 1000;
+
+
+        $totalDenda = 
+        $dendaTerlambat 
+        + 
+        $tambahanDenda;
+
+
+    $borrowing->update([
+
+        'status' => 'dikembalikan',
+
+        'kondisi_buku' => $request->kondisi_buku,
+
+        'denda' => $totalDenda,
+
+    ]);
+        /*
+        |--------------------------------
+        | STOK BUKU
+        |--------------------------------
+        */
+
+        if(
+            $request->kondisi_buku == 'baik'
+            ||
+            $request->kondisi_buku == 'rusak_ringan'
+        ){
+
+            $borrowing->book->increment('stok');
+
+        }
+
 
         return redirect()
             ->back()
-            ->with('success', 'Buku berhasil dikembalikan dan denda tercatat');
+            ->with(
+                'success',
+                'Pengembalian berhasil dikonfirmasi'
+            );
     }
+
+
+
+    
 
     /*
     |--------------------------------------------------------------------------
@@ -300,4 +424,82 @@ class AdminController extends Controller
             ->route('users.index')
             ->with('success', 'Role berhasil diperbarui');
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PEMBAYARAN DENDA
+    |--------------------------------------------------------------------------
+    */
+
+    public function payments()
+    {
+        $payments = Payment::with([
+            'user',
+            'borrowing.book'
+        ])
+        ->where('status', 'menunggu')
+        ->latest()
+        ->get();
+
+        return view(
+            'admin.payments',
+            compact('payments')
+        );
+    }
+
+    public function confirmPayment(Payment $payment)
+    {
+
+        if($payment->status == 'lunas')
+        {
+            return back()->with(
+                'error',
+                'Pembayaran sudah dikonfirmasi.'
+            );
+        }
+
+
+        $payment->update([
+            'status' => 'lunas'
+        ]);
+
+
+        $borrowing = $payment->borrowing;
+
+
+        $totalPaid = $borrowing->payments()
+            ->where('status','lunas')
+            ->sum('jumlah');
+
+
+        if($totalPaid >= $borrowing->denda)
+        {
+            $borrowing->update([
+                'denda'=>0
+            ]);
+        }
+
+
+        return back()->with(
+            'success',
+            'Pembayaran berhasil dikonfirmasi.'
+        );
+
+    }
+
+    public function destroyUser(User $user)
+{
+    // Mencegah admin menghapus dirinya sendiri
+    if ($user->id == auth()->id()) {
+        return back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+    }
+
+    $user->delete();
+
+    return back()->with(
+        'success',
+        'User berhasil dihapus.'
+    );
+}
 }

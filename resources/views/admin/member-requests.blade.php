@@ -45,7 +45,8 @@
             </h2>
 
             <p class="text-slate-500 mt-1">
-                {{ $requests->where('status', 'pending')->count() }} pengajuan menunggu persetujuan
+                {{ $requests->where('status', 'waiting_confirmation')->count() }}
+                pembayaran menunggu verifikasi
             </p>
         </div>
 
@@ -67,12 +68,35 @@
 
                     <thead class="bg-slate-50">
                         <tr>
-                            <th class="px-6 py-4 text-left text-sm font-bold text-slate-600">Nama</th>
-                            <th class="px-6 py-4 text-left text-sm font-bold text-slate-600">Email</th>
-                            <th class="px-6 py-4 text-left text-sm font-bold text-slate-600">NPM</th>
-                            <th class="px-6 py-4 text-left text-sm font-bold text-slate-600">Status</th>
-                            <th class="px-6 py-4 text-left text-sm font-bold text-slate-600">Tanggal</th>
-                            <th class="px-6 py-4 text-center text-sm font-bold text-slate-600">Aksi</th>
+
+                            <th class="px-6 py-4 text-left text-sm font-bold text-slate-600">
+                                Nama
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-sm font-bold text-slate-600">
+                                Email
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-sm font-bold text-slate-600">
+                                NPM
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-sm font-bold text-slate-600">
+                                Status
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-sm font-bold text-slate-600">
+                                Tanggal
+                            </th>
+
+                            <th class="px-6 py-4 text-center text-sm font-bold text-slate-600">
+                                Bukti
+                            </th>
+
+                            <th class="px-6 py-4 text-center text-sm font-bold text-slate-600">
+                                Aksi
+                            </th>
+
                         </tr>
                     </thead>
 
@@ -100,20 +124,30 @@
                                 <!-- STATUS -->
                                 <td class="px-6 py-4">
 
-                                    @if($req->status === 'pending')
+                                    @if($req->status === 'pending_payment')
+
                                         <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">
-                                            Menunggu
+                                            Menunggu Pembayaran
+                                        </span>
+
+                                    @elseif($req->status === 'waiting_confirmation')
+
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">
+                                            Menunggu Verifikasi
                                         </span>
 
                                     @elseif($req->status === 'approved')
+
                                         <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">
-                                            Disetujui
+                                            Member Aktif
                                         </span>
 
-                                    @else
+                                    @elseif($req->status === 'rejected')
+
                                         <span class="bg-red-100 text-red-800 text-xs font-bold px-3 py-1 rounded-full">
                                             Ditolak
                                         </span>
+
                                     @endif
 
                                 </td>
@@ -122,11 +156,44 @@
                                 <td class="px-6 py-4 text-slate-600 text-sm">
                                     {{ $req->created_at->format('d M Y H:i') }}
                                 </td>
+                                
+                                <!-- BUKTI PEMBAYARAN -->
+<td class="px-6 py-4 text-center">
+
+    @if($req->bukti_pembayaran)
+
+        <button
+            onclick="openBukti('{{ asset('storage/'.$req->bukti_pembayaran) }}')"
+            class="
+                bg-blue-600
+                hover:bg-blue-700
+                text-white
+                px-4
+                py-2
+                rounded-xl
+                font-bold
+                transition
+            "
+        >
+
+            Lihat Bukti
+
+        </button>
+
+    @else
+
+        <span class="text-slate-400 text-sm">
+            Belum Upload
+        </span>
+
+    @endif
+
+</td>
 
                                 <!-- ACTION -->
                                 <td class="px-6 py-4 text-center">
 
-                                    @if($req->status === 'pending')
+                                    @if($req->status === 'waiting_confirmation')
 
                                         <div class="flex gap-2 justify-center">
 
@@ -167,5 +234,94 @@
     </x-card>
 
 </div>
+
+<div
+    id="buktiModal"
+    onclick="closeBukti()"
+    class="
+        hidden
+        fixed
+        inset-0
+        bg-black/60
+        backdrop-blur-xl
+        z-50
+        items-center
+        justify-center
+        p-6
+    "
+>
+
+    <div
+        class="relative"
+        onclick="event.stopPropagation()"
+    >
+
+        <button
+            onclick="closeBukti()"
+            class="
+                absolute
+                -top-12
+                right-0
+                text-white
+                text-4xl
+                font-black
+                hover:text-red-400
+                transition
+            "
+        >
+            ×
+        </button>
+
+        <img
+            id="buktiImage"
+            src=""
+            class="
+                max-h-[95vh]
+                max-w-[95vw]
+                rounded-3xl
+                shadow-2xl
+                object-contain
+            "
+        >
+
+    </div>
+
+</div>
+
+<script>
+
+function openBukti(url)
+{
+    const modal = document.getElementById('buktiModal');
+    const image = document.getElementById('buktiImage');
+
+    image.src = url;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeBukti()
+{
+    const modal = document.getElementById('buktiModal');
+    const image = document.getElementById('buktiImage');
+
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+
+    image.src = '';
+}
+
+document.addEventListener('keydown', function(event){
+
+    if(event.key === 'Escape'){
+
+        closeBukti();
+
+    }
+
+});
+
+</script>
 
 @endsection
